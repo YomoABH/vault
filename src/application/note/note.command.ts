@@ -1,4 +1,4 @@
-import type { Note } from '@/domain/note/node'
+import type { Note } from '@/domain/note/note'
 import type { UUID } from '@/shared-kernel'
 import { createNote, updateNote } from '@/domain/note/note.rules'
 
@@ -16,7 +16,6 @@ export async function executeUpdateNote(note: Note, changes: TChanges) {
 	return updatingNote
 }
 
-export async function executeDeleteNote(noteId: UUID) {
-	noteId.at(3) // просто чтобы линтер не ругал меня
-	// await deleteIndexDB(noteId)
+export async function executeDeleteNote(_noteId: UUID) {
+	// await deleteIndexDB(_noteId)
 }
