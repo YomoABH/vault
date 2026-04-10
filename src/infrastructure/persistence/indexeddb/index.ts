@@ -25,6 +25,10 @@ export interface InsertArgs {
 }
 
 export interface UpdateArgs extends InsertArgs {}
+
+export interface GetAllArgs {
+	store: string
+}
 // #endregion
 
 function useIndexedDB(name: string, options?: DataBaseOptions) {
@@ -112,6 +116,10 @@ function createDataBase(name: string, options?: DataBaseOptions) {
 		delete: async ({ store, id }: RecordArgs): Promise<undefined> => {
 			await ready
 			return db.exec(store, os => os.delete(id))
+		},
+		getAll: async <T>({ store }: GetAllArgs): Promise<T[]> => {
+			await ready
+			return db.exec<T[]>(store, os => os.getAll(), 'readonly')
 		},
 	}
 }

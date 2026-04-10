@@ -13,7 +13,7 @@ export async function executeCreateNote(title: string) {
 
 export async function executeUpdateNote(note: Note, changes: TChanges) {
 	const updatingNote = updateNote(note, changes)
-	await vaultDB.update({ store: 'notes', record: note })
+	await vaultDB.update({ store: 'notes', record: updatingNote })
 	return updatingNote
 }
 
