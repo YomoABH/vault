@@ -1,23 +1,22 @@
 <script setup lang="ts">
 import type { Note } from '@/domain/note/note'
 import { useNotes } from '@presentation/features/notes/composables/useNotes'
-import { executeUpdateNote } from '@/application/note/note.command'
 
 const props = defineProps<{
 	note: Note
 }>()
 
-const { activeNote } = useNotes()
+const { activeNote, updateNote } = useNotes()
 
 async function onTitleChange(event: Event) {
 	const title = (event.target as HTMLInputElement).value
-	const updated = await executeUpdateNote(props.note, { title })
+	const updated = await updateNote(props.note, { title })
 	activeNote.value = updated
 }
 
 async function onContentChange(event: Event) {
 	const content = (event.target as HTMLTextAreaElement).value
-	const updated = await executeUpdateNote(props.note, { content })
+	const updated = await updateNote(props.note, { content })
 	activeNote.value = updated
 }
 </script>
@@ -28,7 +27,7 @@ async function onContentChange(event: Event) {
 			class="w-full bg-transparent text-2xl font-semibold outline-none placeholder:text-muted-foreground  pb-2"
 			placeholder="Название заметки"
 			:value="props.note.title"
-			@change="onTitleChange"
+			@input="onTitleChange"
 		>
 
 		<textarea

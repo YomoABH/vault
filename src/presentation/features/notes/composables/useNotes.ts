@@ -1,7 +1,7 @@
 import type { Note } from '@/domain/note/note'
 import type { UUID } from '@/shared-kernel'
 import { ref } from 'vue'
-import { executeCreateNote, executeDeleteNote, executeDuplicateNote } from '@/application/note/note.command'
+import { executeCreateNote, executeDeleteNote, executeDuplicateNote, executeUpdateNote } from '@/application/note/note.command'
 import { executeGetNotes } from '@/application/note/note.queries'
 
 const notes = ref<Note[]>([])
@@ -36,5 +36,16 @@ export function useNotes() {
 		activeNote.value = duplicate
 	}
 
-	return { notes, activeNote, loadNotes, setActiveNote, createNote, deleteNote, duplicateNote }
+	async function updateNote(note: Note, changes: Partial<Pick<Note, 'title' | 'content'>>) {
+		const updated = await executeUpdateNote(note, changes)
+		notes.value = notes.value.map((n) => {
+			if (n.id !== updated.id) {
+				return n
+			}
+			return { ...updated }
+		})
+		return updated
+	}
+
+	return { notes, activeNote, loadNotes, setActiveNote, createNote, deleteNote, duplicateNote, updateNote }
 }
