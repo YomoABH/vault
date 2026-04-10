@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Note } from '@/domain/note/note'
-import { executeUpdateNote } from '@/application/note/note.command'
 import { useNotes } from '@presentation/features/notes/composables/useNotes'
+import { executeUpdateNote } from '@/application/note/note.command'
 
 const props = defineProps<{
 	note: Note
@@ -23,15 +23,16 @@ async function onContentChange(event: Event) {
 </script>
 
 <template>
-	<div class="flex flex-col h-full p-6 gap-4">
+	<div class="flex flex-col max-w-220 mx-auto h-full p-6 gap-4">
 		<input
-			class="w-full bg-transparent text-2xl font-semibold outline-none placeholder:text-muted-foreground border-b border-border pb-2"
+			class="w-full bg-transparent text-2xl font-semibold outline-none placeholder:text-muted-foreground  pb-2"
 			placeholder="Название заметки"
 			:value="props.note.title"
 			@change="onTitleChange"
-		/>
+		>
+
 		<textarea
-			class="flex-1 w-full bg-transparent text-sm outline-none resize-none placeholder:text-muted-foreground"
+			class="flex-1 w-full bg-transparent text-base outline-none resize-none placeholder:text-muted-foreground"
 			placeholder="Начните писать..."
 			:value="props.note.content"
 			@change="onContentChange"

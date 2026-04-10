@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
+import type { HTMLAttributes } from 'vue'
 import { cn } from '@/presentation/shared/lib/utils'
 import { Input } from '@/presentation/shared/ui/input'
 
 const props = defineProps<{
-  class?: HTMLAttributes["class"]
+	class?: HTMLAttributes['class']
 }>()
 </script>
 
 <template>
-  <Input
-    data-sidebar="input"
-    :class="cn(
-      'h-8 w-full bg-background shadow-none focus-visible:ring-2 focus-visible:ring-sidebar-ring',
-      props.class,
-    )"
-  >
-    <slot />
-  </Input>
+	<Input
+		data-sidebar="input"
+		:class="cn(
+			'h-8 w-full bg-background shadow-none focus-visible:ring-2 focus-visible:ring-sidebar-ring',
+			props.class,
+		)"
+	>
+		<slot />
+	</Input>
 </template>

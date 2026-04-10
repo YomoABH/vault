@@ -6,5 +6,5 @@ import './style.css'
 createApp(App).use(router).mount('#app')
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js')
+	navigator.serviceWorker.register('/sw.js')
 }

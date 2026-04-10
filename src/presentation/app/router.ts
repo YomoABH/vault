@@ -1,5 +1,5 @@
-import { createRouter, createWebHistory } from 'vue-router'
 import type { Component } from 'vue'
+import { createRouter, createWebHistory } from 'vue-router'
 
 declare module 'vue-router' {
 	interface RouteMeta {

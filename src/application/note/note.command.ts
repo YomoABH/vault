@@ -20,3 +20,10 @@ export async function executeUpdateNote(note: Note, changes: TChanges) {
 export async function executeDeleteNote(noteId: UUID) {
 	await vaultDB.delete({ store: 'notes', id: noteId })
 }
+
+export async function executeDuplicateNote(note: Note) {
+	const duplicate = createNote(note.title)
+	const withContent = updateNote(duplicate, { content: note.content })
+	await vaultDB.insert({ store: 'notes', record: withContent })
+	return withContent
+}
