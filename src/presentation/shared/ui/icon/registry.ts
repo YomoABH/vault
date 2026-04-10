@@ -1,8 +1,8 @@
-import { PanelLeft } from 'lucide-vue-next'
 import type { Component } from 'vue'
+import { NotebookText, Vault, VectorSquare } from 'lucide-vue-next'
 
-// Добавляй иконки сюда по мере роста приложения.
-// В бандл попадут только те, что перечислены здесь.
 export const iconRegistry: Record<string, Component> = {
-  PanelLeft,
+	Vault,
+	NotebookText,
+	VectorSquare,
 }
