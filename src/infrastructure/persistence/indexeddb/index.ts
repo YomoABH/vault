@@ -119,9 +119,6 @@ function createDataBase(name: string, options?: DataBaseOptions) {
 export const vaultDB = createDataBase('vault', {
 	version: 1,
 	schemas: {
-		notes: {
-			title: { index: true },
-			updatedAt: { index: true },
-		},
+		notes: {},
 	},
 })

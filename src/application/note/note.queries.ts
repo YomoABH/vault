@@ -1,3 +1,3 @@
 export async function executeGetNotes() {
-	// await getIndexDB()
+	// return await vaultDB.get()
 }

@@ -1,4 +1,4 @@
-import type { Note } from './node'
+import type { Note } from './note'
 import type { rawMarkdown } from '@/shared-kernel'
 
 export function createNote(title: string, content: rawMarkdown = ''): Note {
