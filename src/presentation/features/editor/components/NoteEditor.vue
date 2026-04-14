@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Note } from '@/domain/note/note'
 import { useNotes } from '@presentation/features/notes/composables/useNotes'
+import { useDebounceFn } from '@vueuse/core'
 
 const props = defineProps<{
 	note: Note
@@ -8,17 +9,17 @@ const props = defineProps<{
 
 const { activeNote, updateNote } = useNotes()
 
-async function onTitleChange(event: Event) {
+const onTitleChange = useDebounceFn(async (event: Event) => {
 	const title = (event.target as HTMLInputElement).value
 	const updated = await updateNote(props.note, { title })
 	activeNote.value = updated
-}
+}, 500)
 
-async function onContentChange(event: Event) {
+const onContentChange = useDebounceFn(async (event: Event) => {
 	const content = (event.target as HTMLTextAreaElement).value
 	const updated = await updateNote(props.note, { content })
 	activeNote.value = updated
-}
+}, 500)
 </script>
 
 <template>
@@ -34,7 +35,7 @@ async function onContentChange(event: Event) {
 			class="flex-1 w-full bg-transparent text-base outline-none resize-none placeholder:text-muted-foreground"
 			placeholder="Начните писать..."
 			:value="props.note.content"
-			@change="onContentChange"
+			@input="onContentChange"
 		/>
 	</div>
 </template>

@@ -1,6 +1,6 @@
 import type { Note } from '@/domain/note/note'
 import type { UUID } from '@/shared-kernel'
-import { createNote, updateNote } from '@/domain/note/note.rules'
+import { createNote, duplicateNote, updateNote } from '@/domain/note/note.rules'
 import { vaultDB } from '@/infrastructure/persistence/indexeddb'
 
 type TChanges = Partial<Pick<Note, 'title' | 'content'>>
@@ -22,8 +22,7 @@ export async function executeDeleteNote(noteId: UUID) {
 }
 
 export async function executeDuplicateNote(note: Note) {
-	const duplicate = createNote(note.title)
-	const withContent = updateNote(duplicate, { content: note.content })
-	await vaultDB.insert({ store: 'notes', record: withContent })
-	return withContent
+	const duplicate = duplicateNote(note)
+	await vaultDB.insert({ store: 'notes', record: duplicate })
+	return duplicate
 }

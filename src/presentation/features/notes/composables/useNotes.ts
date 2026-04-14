@@ -1,8 +1,9 @@
 import type { Note } from '@/domain/note/note'
 import type { UUID } from '@/shared-kernel'
 import { ref } from 'vue'
-import { executeCreateNote, executeDeleteNote, executeDuplicateNote, executeUpdateNote } from '@/application/note/note.command'
-import { executeGetNotes } from '@/application/note/note.queries'
+import { useNoteUseCases } from '@/application/note'
+
+const { createNote: executeCreateNote, updateNote: executeUpdateNote, deleteNote: executeDeleteNote, duplicateNote: executeDuplicateNote, getNotes: executeGetNotes } = useNoteUseCases()
 
 const notes = ref<Note[]>([])
 const activeNote = ref<Note | null>(null)
@@ -26,8 +27,8 @@ export function useNotes() {
 		if (activeNote.value?.id === noteId) {
 			activeNote.value = null
 		}
-		await executeDeleteNote(noteId)
-		await loadNotes()
+		executeDeleteNote(noteId)
+		notes.value = notes.value.filter(n => n.id !== noteId)
 	}
 
 	async function duplicateNote(note: Note): Promise<void> {

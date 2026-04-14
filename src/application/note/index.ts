@@ -1,4 +1,4 @@
-import { executeCreateNote, executeDeleteNote, executeUpdateNote } from './note.command'
+import { executeCreateNote, executeDeleteNote, executeDuplicateNote, executeUpdateNote } from './note.command'
 import { executeGetNotes } from './note.queries'
 
 export function useNoteUseCases() {
@@ -6,6 +6,7 @@ export function useNoteUseCases() {
 		createNote: executeCreateNote,
 		updateNote: executeUpdateNote,
 		deleteNote: executeDeleteNote,
+		duplicateNote: executeDuplicateNote,
 		getNotes: executeGetNotes,
 	}
 }
