@@ -2,6 +2,7 @@
 import type { Note } from '@/domain/note/note'
 import { useNotes } from '@presentation/features/notes/composables/useNotes'
 import { useDebounceFn } from '@vueuse/core'
+import { ref, watch } from 'vue'
 
 const props = defineProps<{
 	note: Note
@@ -9,17 +10,34 @@ const props = defineProps<{
 
 const { activeNote, updateNote } = useNotes()
 
-const onTitleChange = useDebounceFn(async (event: Event) => {
-	const title = (event.target as HTMLInputElement).value
-	const updated = await updateNote(props.note, { title })
+const title = ref(props.note.title)
+const content = ref(props.note.content)
+
+watch(
+	() => props.note.id,
+	() => {
+		title.value = props.note.title
+		content.value = props.note.content
+	},
+)
+
+const saveNote = useDebounceFn(async () => {
+	const updated = await updateNote(props.note, {
+		title: title.value,
+		content: content.value,
+	})
 	activeNote.value = updated
 }, 500)
 
-const onContentChange = useDebounceFn(async (event: Event) => {
-	const content = (event.target as HTMLTextAreaElement).value
-	const updated = await updateNote(props.note, { content })
-	activeNote.value = updated
-}, 500)
+function onTitleChange(event: Event) {
+	title.value = (event.target as HTMLInputElement).value
+	saveNote()
+}
+
+function onContentChange(event: Event) {
+	content.value = (event.target as HTMLTextAreaElement).value
+	saveNote()
+}
 </script>
 
 <template>
