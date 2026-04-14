@@ -1,5 +1,8 @@
+import type { rawMarkdown, Result } from '@shared-kernel'
 import type { Note } from './note'
-import type { rawMarkdown } from '@/shared-kernel'
+import type { NoteError } from './note.errors'
+import { err, ok } from '@shared-kernel'
+import { noteErr } from './note.errors'
 
 // --- Constraints ---
 
@@ -12,24 +15,42 @@ type NoteChanges = Partial<Pick<Note, 'title' | 'content'>>
 
 // --- Rules ---
 
-export function createNote(title: string, content: rawMarkdown = ''): Note {
+export function createNote(title: string, content: rawMarkdown = ''): Result<Note, NoteError> {
+	const trimmed = title.trim()
+	if (!trimmed) {
+		return err(noteErr('empty_title'))
+	}
+	if (trimmed.length > NOTE_TITLE_MAX_LENGTH) {
+		return err(noteErr('title_too_long'))
+	}
 	const now = Date.now()
-	return {
+	return ok({
 		id: crypto.randomUUID(),
-		title: title.trim().slice(0, NOTE_TITLE_MAX_LENGTH) || NOTE_DEFAULT_TITLE,
+		title: trimmed,
 		content,
 		createdAt: now,
 		updatedAt: now,
-	}
+	})
 }
 
-export function updateNote(note: Note, changes: NoteChanges): Note {
-	if (!changes.title && !changes.content) {
-		return note
+export function updateNote(note: Note, changes: NoteChanges): Result<Note, NoteError> {
+	if (changes.title === undefined && changes.content === undefined) {
+		return ok(note)
 	}
-	return { ...note, ...changes, updatedAt: Date.now() }
+	let validated = changes
+	if (changes.title !== undefined) {
+		const trimmed = changes.title.trim()
+		if (!trimmed) {
+			return err(noteErr('empty_title'))
+		}
+		if (trimmed.length > NOTE_TITLE_MAX_LENGTH) {
+			return err(noteErr('title_too_long'))
+		}
+		validated = { ...changes, title: trimmed }
+	}
+	return ok({ ...note, ...validated, updatedAt: Date.now() })
 }
 
-export function duplicateNote(note: Note): Note {
+export function duplicateNote(note: Note): Result<Note, NoteError> {
 	return createNote(note.title, note.content)
 }
