@@ -1,6 +1,5 @@
 <script setup lang="ts">
 // #region --- import ---
-import { onMounted } from 'vue'
 import {
 	ContextMenu,
 	ContextMenuContent,
@@ -17,8 +16,7 @@ defineEmits<{
 	close: []
 }>()
 
-const { notes, loadNotes, createNote } = useNotes()
-onMounted(loadNotes)
+const { notes, createNote } = useNotes()
 </script>
 // #endregion
 

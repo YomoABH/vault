@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import App from './presentation/app/App.vue'
 import router from './presentation/app/router'
 import './style.css'
+import 'vue-sonner/style.css'
 
 createApp(App).use(router).mount('#app')
 

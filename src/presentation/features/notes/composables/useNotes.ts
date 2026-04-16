@@ -1,14 +1,22 @@
-import type { Note } from '@/domain/note/note'
-import type { NoteError, NoteErrorCode } from '@/domain/note/note.errors'
-import type { UUID } from '@/shared-kernel'
+import type { Note } from '@domain/note/note'
+import type { NoteError, NoteErrorCode } from '@domain/note/note.errors'
+import type { UUID } from '@shared-kernel'
 import { useNoteUseCases } from '@application/note'
 import { useToast } from '@presentation/shared/composables/useToast'
-import { ref } from 'vue'
+import { useUIState } from '@presentation/shared/composables/useUIState'
+import { ref, watch } from 'vue'
 
 const { createNote: executeCreateNote, updateNote: executeUpdateNote, deleteNote: executeDeleteNote, duplicateNote: executeDuplicateNote, getNotes: executeGetNotes } = useNoteUseCases()
 
+const { activeNoteId } = useUIState()
+
 const notes = ref<Note[]>([])
 const activeNote = ref<Note | null>(null)
+
+// Keep activeNoteId in sync so it survives page reload
+watch(activeNote, (note) => {
+	activeNoteId.value = note?.id ?? null
+})
 
 const ERROR_MESSAGES: Record<NoteErrorCode, string> = {
 	empty_title: 'Название заметки не может быть пустым',
@@ -27,11 +35,16 @@ function showError(error: NoteError): void {
 export function useNotes() {
 	async function loadNotes(): Promise<void> {
 		const result = await executeGetNotes()
-		if (result.ok) {
-			notes.value = result.value
-		}
-		else {
+		if (!result.ok) {
 			showError(result.error)
+			return
+		}
+		notes.value = result.value
+		if (activeNoteId.value) {
+			const found = notes.value.find(n => n.id === activeNoteId.value) ?? null
+			activeNote.value = found
+			if (!found)
+				activeNoteId.value = null // note was deleted externally
 		}
 	}
 

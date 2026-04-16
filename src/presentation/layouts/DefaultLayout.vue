@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // #region --- import ---
 import { NotesPanel } from '@presentation/features/notes'
+import { useUIState } from '@presentation/shared/composables/useUIState'
 import Sidebar from '@presentation/shared/ui/sidebar/Sidebar.vue'
 import SidebarContent from '@presentation/shared/ui/sidebar/SidebarContent.vue'
 import SidebarFooter from '@presentation/shared/ui/sidebar/SidebarFooter.vue'
@@ -9,12 +10,11 @@ import SidebarHeader from '@presentation/shared/ui/sidebar/SidebarHeader.vue'
 import SidebarInset from '@presentation/shared/ui/sidebar/SidebarInset.vue'
 import SidebarMenuItem from '@presentation/shared/ui/sidebar/SidebarMenuItem.vue'
 import SidebarProvider from '@presentation/shared/ui/sidebar/SidebarProvider.vue'
-import { ref } from 'vue'
 import Icon from '../shared/ui/icon/Icon.vue'
 import SidebarMenuButton from '../shared/ui/sidebar/SidebarMenuButton.vue'
 // #endregion
 
-const isNotesPanelOpen = ref(false)
+const { isNotesPanelOpen } = useUIState()
 
 function toggleNotesPanel() {
 	isNotesPanelOpen.value = !isNotesPanelOpen.value

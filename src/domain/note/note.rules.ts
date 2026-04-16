@@ -6,7 +6,7 @@ import { noteErr } from './note.errors'
 
 // --- Constraints ---
 
-export const NOTE_TITLE_MAX_LENGTH = 255
+export const NOTE_TITLE_MAX_LENGTH = 20
 export const NOTE_DEFAULT_TITLE = 'Untitled'
 
 // --- Types ---
@@ -20,6 +20,7 @@ export function createNote(title: string, content: rawMarkdown = ''): Result<Not
 	if (!trimmed) {
 		return err(noteErr('empty_title'))
 	}
+
 	if (trimmed.length > NOTE_TITLE_MAX_LENGTH) {
 		return err(noteErr('title_too_long'))
 	}
@@ -40,12 +41,15 @@ export function updateNote(note: Note, changes: NoteChanges): Result<Note, NoteE
 	let validated = changes
 	if (changes.title !== undefined) {
 		const trimmed = changes.title.trim()
+
 		if (!trimmed) {
 			return err(noteErr('empty_title'))
 		}
+
 		if (trimmed.length > NOTE_TITLE_MAX_LENGTH) {
 			return err(noteErr('title_too_long'))
 		}
+
 		validated = { ...changes, title: trimmed }
 	}
 	return ok({ ...note, ...validated, updatedAt: Date.now() })

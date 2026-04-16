@@ -3,23 +3,24 @@ import { err, ok } from '@shared-kernel'
 
 // #region --- errors ---
 
-export type IDBErrorCode =
-	| 'open_failed'        // indexedDB.open() rejected (storage policy, corrupted DB)
-	| 'open_blocked'       // another tab holds an older version open
-	| 'not_connected'      // exec() called before open succeeded
-	| 'store_not_found'    // objectStore name not in schema
-	| 'quota_exceeded'     // QuotaExceededError on write
-	| 'transaction_failed' // generic tx.onerror
-	| 'record_not_found'   // get() returned undefined
-	| 'unknown_error'      // unexpected synchronous throw
+export type IDBErrorCode
+	= | 'open_failed' // indexedDB.open() rejected (storage policy, corrupted DB)
+		| 'open_blocked' // another tab holds an older version open
+		| 'not_connected' // exec() called before open succeeded
+		| 'store_not_found' // objectStore name not in schema
+		| 'quota_exceeded' // QuotaExceededError on write
+		| 'transaction_failed' // generic tx.onerror
+		| 'record_not_found' // get() returned undefined
+		| 'unknown_error' // unexpected synchronous throw
 
 export interface IDBError {
 	readonly code: IDBErrorCode
 	readonly cause?: unknown
 }
 
-const idbErr = (code: IDBErrorCode, cause?: unknown): IDBError =>
-	cause !== undefined ? { code, cause } : { code }
+function idbErr(code: IDBErrorCode, cause?: unknown): IDBError {
+	return cause !== undefined ? { code, cause } : { code }
+}
 
 // #endregion
 
@@ -144,30 +145,37 @@ function createDataBase(name: string, options?: DataBaseOptions) {
 	return {
 		get: async <T>({ store, id }: RecordArgs): Promise<Result<T, IDBError>> => {
 			const openResult = await ready
-			if (!openResult.ok) return openResult
+			if (!openResult.ok)
+				return openResult
 			const result = await db.exec<T | undefined>(store, os => os.get(id), 'readonly')
-			if (!result.ok) return result
-			if (result.value === undefined) return err(idbErr('record_not_found'))
+			if (!result.ok)
+				return result
+			if (result.value === undefined)
+				return err(idbErr('record_not_found'))
 			return ok(result.value)
 		},
 		insert: async ({ store, record }: InsertArgs): Promise<Result<IDBValidKey, IDBError>> => {
 			const openResult = await ready
-			if (!openResult.ok) return openResult
+			if (!openResult.ok)
+				return openResult
 			return db.exec(store, os => os.add(record))
 		},
 		update: async ({ store, record }: UpdateArgs): Promise<Result<IDBValidKey, IDBError>> => {
 			const openResult = await ready
-			if (!openResult.ok) return openResult
+			if (!openResult.ok)
+				return openResult
 			return db.exec(store, os => os.put(record))
 		},
 		delete: async ({ store, id }: RecordArgs): Promise<Result<undefined, IDBError>> => {
 			const openResult = await ready
-			if (!openResult.ok) return openResult
+			if (!openResult.ok)
+				return openResult
 			return db.exec(store, os => os.delete(id))
 		},
 		getAll: async <T>({ store }: GetAllArgs): Promise<Result<T[], IDBError>> => {
 			const openResult = await ready
-			if (!openResult.ok) return openResult
+			if (!openResult.ok)
+				return openResult
 			return db.exec<T[]>(store, os => os.getAll(), 'readonly')
 		},
 	}
