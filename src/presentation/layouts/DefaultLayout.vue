@@ -52,8 +52,8 @@ function toggleNotesPanel() {
 				<NotesPanel v-if="isNotesPanelOpen" @close="isNotesPanelOpen = false" />
 			</Transition>
 
-			<div class="w-full h-full overflow-hidden">
-				<header class="flex h-12 items-center gap-2 px-4 border-b border-border">
+			<div class="w-full h-full flex flex-col overflow-hidden">
+				<header class="flex h-12 grow-0 shrink-0 items-center gap-2 px-4 border-b border-border">
 					<SidebarMenuItem class="flex gap-1 items-center">
 						<span>V</span>
 						<span>A</span>

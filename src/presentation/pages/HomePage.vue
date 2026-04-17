@@ -6,6 +6,8 @@ const { activeNote } = useNotes()
 </script>
 
 <template>
-	<WelcomeComponent v-if="!activeNote" />
-	<NoteEditor v-else :note="activeNote" />
+	<div class="grow shrink">
+		<WelcomeComponent v-if="!activeNote" />
+		<NoteEditor v-else :note="activeNote" />
+	</div>
 </template>
