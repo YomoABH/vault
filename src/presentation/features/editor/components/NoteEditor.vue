@@ -1,9 +1,12 @@
 <script setup lang="ts">
+// #region --- import ---
 import type { Note } from '@/domain/note/note'
 import { useNotes } from '@presentation/features/notes/composables/useNotes'
-import { useDebounceFn } from '@vueuse/core'
+import { useTimeoutFn } from '@vueuse/core'
 import { onUnmounted, ref, watch } from 'vue'
+// #endregion
 
+// #region ---state---
 const props = defineProps<{
 	note: Note
 }>()
@@ -12,7 +15,29 @@ const { activeNote, updateNote } = useNotes()
 
 const title = ref(props.note.title)
 const content = ref(props.note.content)
-let resetTimer: ReturnType<typeof setTimeout> | null = null
+let isMounted = true
+
+const { start: scheduleSave } = useTimeoutFn(async () => {
+	const updated = await updateNote(props.note, {
+		title: title.value,
+		content: content.value,
+	})
+	if (!isMounted)
+		return
+	if (updated !== null) {
+		activeNote.value = updated
+	}
+}, 500, { immediate: false })
+
+function onTitleChange(event: Event) {
+	title.value = (event.target as HTMLInputElement).value
+	scheduleSave()
+}
+
+function onContentChange(event: Event) {
+	content.value = (event.target as HTMLTextAreaElement).value
+	scheduleSave()
+}
 
 watch(
 	() => props.note.id,
@@ -23,37 +48,9 @@ watch(
 )
 
 onUnmounted(() => {
-	if (resetTimer)
-		clearTimeout(resetTimer)
+	isMounted = false
 })
-
-function scheduleSaveReset() {
-	if (resetTimer)
-		clearTimeout(resetTimer)
-	resetTimer = setTimeout(() => {
-	}, 2000)
-}
-
-const doSave = useDebounceFn(async () => {
-	const updated = await updateNote(props.note, {
-		title: title.value,
-		content: content.value,
-	})
-	scheduleSaveReset()
-	if (updated !== null) {
-		activeNote.value = updated
-	}
-}, 500)
-
-function onTitleChange(event: Event) {
-	title.value = (event.target as HTMLInputElement).value
-	doSave()
-}
-
-function onContentChange(event: Event) {
-	content.value = (event.target as HTMLTextAreaElement).value
-	doSave()
-}
+// #endregion
 </script>
 
 <template>

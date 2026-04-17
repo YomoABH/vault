@@ -13,7 +13,7 @@ const { activeNoteId } = useUIState()
 const notes = ref<Note[]>([])
 const activeNote = ref<Note | null>(null)
 
-// Keep activeNoteId in sync so it survives page reload
+// Intentional module-level singleton — one watcher for the entire app lifetime
 watch(activeNote, (note) => {
 	activeNoteId.value = note?.id ?? null
 })
