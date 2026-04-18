@@ -6,6 +6,7 @@ import { err, ok } from '@shared-kernel'
 export type IDBErrorCode
 	= | 'open_failed' // indexedDB.open() rejected (storage policy, corrupted DB)
 		| 'open_blocked' // another tab holds an older version open
+		| 'migration_failed' // a migration threw; versionchange tx aborted
 		| 'not_connected' // exec() called before open succeeded
 		| 'store_not_found' // objectStore name not in schema
 		| 'quota_exceeded' // QuotaExceededError on write
@@ -26,17 +27,17 @@ function idbErr(code: IDBErrorCode, cause?: unknown): IDBError {
 
 // #region --- types ---
 
-interface SchemaField {
-	index?: boolean
+export interface MigrationContext {
+	readonly db: IDBDatabase
+	readonly tx: IDBTransaction // versionchange tx; scope = all stores, lifespan = this upgrade only
+	readonly oldVersion: number
+	readonly newVersion: number
 }
 
-interface StoreSchema {
-	[field: string]: SchemaField
-}
+export type Migration = (ctx: MigrationContext) => void
 
 export interface DataBaseOptions {
-	version?: number
-	schemas?: Record<string, StoreSchema>
+	migrations: Record<number, Migration>
 }
 
 export interface RecordArgs {
@@ -57,25 +58,28 @@ export interface GetAllArgs {
 
 // #endregion
 
-function useIndexedDB(name: string, options?: DataBaseOptions) {
-	const version = options?.version ?? 1
-	const schemas = options?.schemas ?? {}
+function useIndexedDB(name: string, options: DataBaseOptions) {
+	const migrations = options.migrations
+	const versions = Object.keys(migrations).map(Number)
+	if (versions.length === 0) {
+		throw new Error('DataBaseOptions.migrations must define at least one version')
+	}
+	const version = Math.max(...versions)
 
 	let instance: IDBDatabase | null = null
 
-	const upgrade = (db: IDBDatabase) => {
-		for (const [storeName, schema] of Object.entries(schemas)) {
-			if (db.objectStoreNames.contains(storeName)) {
-				continue
-			}
+	const runMigrations = (event: IDBVersionChangeEvent, request: IDBOpenDBRequest) => {
+		const db = request.result
+		const tx = request.transaction!
+		const oldVersion = event.oldVersion
+		const newVersion = event.newVersion ?? version
 
-			const store = db.createObjectStore(storeName, { keyPath: 'id' })
-
-			for (const [field, def] of Object.entries(schema)) {
-				if (field !== 'id' && def.index) {
-					store.createIndex(field, field, { unique: false })
-				}
+		for (let v = oldVersion + 1; v <= newVersion; v++) {
+			const migration = migrations[v]
+			if (!migration) {
+				throw new Error(`Missing migration for version ${v}`)
 			}
+			migration({ db, tx, oldVersion, newVersion })
 		}
 	}
 
@@ -83,14 +87,27 @@ function useIndexedDB(name: string, options?: DataBaseOptions) {
 		return new Promise((resolve) => {
 			const request = indexedDB.open(name, version)
 
-			request.onupgradeneeded = () => upgrade(request.result)
+			request.onupgradeneeded = (event) => {
+				try {
+					runMigrations(event, request)
+				}
+				catch (cause) {
+					request.transaction?.abort()
+					resolve(err(idbErr('migration_failed', cause)))
+				}
+			}
+
 			request.onsuccess = () => {
 				instance = request.result
+				// Another tab opened the DB with a higher version — release our connection
+				// so its upgrade can proceed. Subsequent exec() calls will return 'not_connected'.
+				instance.onversionchange = () => {
+					instance?.close()
+					instance = null
+				}
 				resolve(ok(request.result))
 			}
 			request.onerror = () => resolve(err(idbErr('open_failed', request.error)))
-			// Another tab holds an older connection open — resolve immediately
-			// so callers get a clear error rather than a hanging promise
 			request.onblocked = () => resolve(err(idbErr('open_blocked')))
 		})
 	}
@@ -138,7 +155,7 @@ function useIndexedDB(name: string, options?: DataBaseOptions) {
 	return { open, exec }
 }
 
-function createDataBase(name: string, options?: DataBaseOptions) {
+function createDataBase(name: string, options: DataBaseOptions) {
 	const db = useIndexedDB(name, options)
 	const ready = db.open()
 
@@ -182,8 +199,12 @@ function createDataBase(name: string, options?: DataBaseOptions) {
 }
 
 export const vaultDB = createDataBase('vault', {
-	version: 1,
-	schemas: {
-		notes: {},
+	migrations: {
+		1: ({ db }) => {
+			db.createObjectStore('notes', { keyPath: 'id' })
+		},
+		2: ({ db }) => {
+			db.createObjectStore('folders', { keyPath: 'id' })
+		},
 	},
 })
