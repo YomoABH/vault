@@ -1,5 +1,5 @@
 import type { Component } from 'vue'
-import { Copy, FilePlusCorner, PanelLeft, Trash2, Vault, VectorSquare } from 'lucide-vue-next'
+import { Copy, FilePlusCorner, FolderPlus, PanelLeft, Trash2, Vault, VectorSquare } from 'lucide-vue-next'
 
 export const iconRegistry: Record<string, Component> = {
 	Vault,
@@ -8,4 +8,5 @@ export const iconRegistry: Record<string, Component> = {
 	FilePlusCorner,
 	Trash2,
 	Copy,
+	FolderPlus,
 }
