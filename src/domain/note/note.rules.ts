@@ -25,10 +25,12 @@ export function createNote(title: string, content: rawMarkdown = ''): Result<Not
 		return err(noteErr('title_too_long'))
 	}
 	const now = Date.now()
+
 	return ok({
 		id: crypto.randomUUID(),
 		title: trimmed,
 		content,
+		folderId: null,
 		createdAt: now,
 		updatedAt: now,
 	})

@@ -1,39 +1,39 @@
 {
-  "name": "vault",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc -b && vite build",
-    "preview": "vite preview",
-    "lint": "eslint src",
-    "lint:fix": "eslint src --fix"
-  },
-  "dependencies": {
-    "@tailwindcss/vite": "^4.2.2",
-    "@vueuse/core": "^14.2.1",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "lucide-vue-next": "^1.0.0",
-    "radix-vue": "^1.9.17",
-    "reka-ui": "^2.9.5",
-    "tailwind-merge": "^3.5.0",
-    "tailwindcss": "^4.2.2",
-    "vue": "^3.5.30",
-    "vue-router": "^5.0.4",
-    "vue-sonner": "^2.0.9"
-  },
-  "devDependencies": {
-    "@antfu/eslint-config": "^8.0.0",
-    "@types/node": "^24.12.0",
-    "@vitejs/plugin-vue": "^6.0.5",
-    "@vue/tsconfig": "^0.9.0",
-    "eslint": "^10.2.0",
-    "typescript": "~6.0.2",
-    "vite": "^8.0.1",
-    "vite-plugin-vue-devtools": "^8.1.1",
-    "vue-tsc": "^3.2.6"
-  },
-  "packageManager": "pnpm@9.12.1+sha512.e5a7e52a4183a02d5931057f7a0dbff9d5e9ce3161e33fa68ae392125b79282a8a8a470a51dfc8a0ed86221442eb2fb57019b0990ed24fab519bf0e1bc5ccfc4"
+	"name": "vault",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vue-tsc -b && vite build",
+		"preview": "vite preview",
+		"lint": "eslint src",
+		"lint:fix": "eslint src --fix"
+	},
+	"dependencies": {
+		"@tailwindcss/vite": "^4.2.2",
+		"@vueuse/core": "^14.2.1",
+		"class-variance-authority": "^0.7.1",
+		"clsx": "^2.1.1",
+		"lucide-vue-next": "^1.0.0",
+		"radix-vue": "^1.9.17",
+		"reka-ui": "^2.9.5",
+		"tailwind-merge": "^3.5.0",
+		"tailwindcss": "^4.2.2",
+		"vue": "^3.5.30",
+		"vue-router": "^5.0.4",
+		"vue-sonner": "^2.0.9"
+	},
+	"devDependencies": {
+		"@antfu/eslint-config": "^8.0.0",
+		"@types/node": "^24.12.0",
+		"@vitejs/plugin-vue": "^6.0.5",
+		"@vue/tsconfig": "^0.9.0",
+		"eslint": "^10.2.0",
+		"typescript": "~6.0.2",
+		"vite": "^8.0.1",
+		"vite-plugin-vue-devtools": "^8.1.1",
+		"vue-tsc": "^3.2.6"
+	},
+	"packageManager": "pnpm@9.12.1+sha512.e5a7e52a4183a02d5931057f7a0dbff9d5e9ce3161e33fa68ae392125b79282a8a8a470a51dfc8a0ed86221442eb2fb57019b0990ed24fab519bf0e1bc5ccfc4"
 }
