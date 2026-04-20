@@ -71,6 +71,7 @@ function useIndexedDB(name: string, options: DataBaseOptions) {
 	const runMigrations = (event: IDBVersionChangeEvent, request: IDBOpenDBRequest) => {
 		const db = request.result
 		const tx = request.transaction!
+
 		const oldVersion = event.oldVersion
 		const newVersion = event.newVersion ?? version
 
@@ -86,28 +87,31 @@ function useIndexedDB(name: string, options: DataBaseOptions) {
 	const open = (): Promise<Result<IDBDatabase, IDBError>> => {
 		return new Promise((resolve) => {
 			const request = indexedDB.open(name, version)
+			let migrationErr: IDBError | undefined
 
 			request.onupgradeneeded = (event) => {
+				const tx = request.transaction!
+				tx.onerror = () => {
+					migrationErr = idbErr('migration_failed', tx.error ?? undefined)
+				}
 				try {
 					runMigrations(event, request)
 				}
 				catch (cause) {
-					request.transaction?.abort()
-					resolve(err(idbErr('migration_failed', cause)))
+					tx.abort()
+					migrationErr = idbErr('migration_failed', cause)
 				}
 			}
 
 			request.onsuccess = () => {
 				instance = request.result
-				// Another tab opened the DB with a higher version — release our connection
-				// so its upgrade can proceed. Subsequent exec() calls will return 'not_connected'.
 				instance.onversionchange = () => {
 					instance?.close()
 					instance = null
 				}
 				resolve(ok(request.result))
 			}
-			request.onerror = () => resolve(err(idbErr('open_failed', request.error)))
+			request.onerror = () => resolve(err(migrationErr ?? idbErr('open_failed', request.error)))
 			request.onblocked = () => resolve(err(idbErr('open_blocked')))
 		})
 	}
@@ -203,8 +207,31 @@ export const vaultDB = createDataBase('vault', {
 		1: ({ db }) => {
 			db.createObjectStore('notes', { keyPath: 'id' })
 		},
-		2: ({ db }) => {
-			db.createObjectStore('folders', { keyPath: 'id' })
+		2: ({ db, tx }) => {
+			const foldersStore = db.createObjectStore('folders', { keyPath: 'id' })
+			foldersStore.createIndex('by_title', 'title', { unique: false })
+			foldersStore.createIndex('by_parentId', 'parentId', { unique: false })
+
+			const notesStore = tx.objectStore('notes')
+			notesStore.createIndex('by_title', 'title', { unique: false })
+			notesStore.createIndex('by_folderId', 'folderId', { unique: false })
+
+			const request = notesStore.openCursor()
+			request.onsuccess = (event) => {
+				const cursor = (event.target as IDBRequest).result
+				if (!cursor) {
+					return
+				}
+
+				const note = cursor.value
+
+				if (note.folderId === undefined) {
+					note.folderId = null
+					cursor.update(note)
+				}
+
+				cursor.continue()
+			}
 		},
 	},
 })
