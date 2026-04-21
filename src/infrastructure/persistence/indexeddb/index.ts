@@ -2,7 +2,6 @@ import type { Result, UUID } from '@shared-kernel'
 import { err, ok } from '@shared-kernel'
 
 // #region --- errors ---
-
 export type IDBErrorCode
 	= | 'open_failed' // indexedDB.open() rejected (storage policy, corrupted DB)
 		| 'open_blocked' // another tab holds an older version open
@@ -58,6 +57,8 @@ export interface GetAllArgs {
 
 // #endregion
 
+const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms))
+
 function useIndexedDB(name: string, options: DataBaseOptions) {
 	const migrations = options.migrations
 	const versions = Object.keys(migrations).map(Number)
@@ -84,7 +85,7 @@ function useIndexedDB(name: string, options: DataBaseOptions) {
 		}
 	}
 
-	const open = (): Promise<Result<IDBDatabase, IDBError>> => {
+	const open = (onVersionChange: () => void): Promise<Result<IDBDatabase, IDBError>> => {
 		return new Promise((resolve) => {
 			const request = indexedDB.open(name, version)
 			let migrationErr: IDBError | undefined
@@ -108,12 +109,31 @@ function useIndexedDB(name: string, options: DataBaseOptions) {
 				instance.onversionchange = () => {
 					instance?.close()
 					instance = null
+					onVersionChange()
 				}
 				resolve(ok(request.result))
 			}
 			request.onerror = () => resolve(err(migrationErr ?? idbErr('open_failed', request.error)))
-			request.onblocked = () => resolve(err(idbErr('open_blocked')))
+			request.onblocked = () => {
+				// ждём 3с: если другой таб закроется — onsuccess сработает сам
+				setTimeout(() => {
+					if (!instance)
+						resolve(err(idbErr('open_blocked')))
+				}, 3000)
+			}
 		})
+	}
+
+	const openWithRetry = async (onVersionChange: () => void, attempts = 3, delayMs = 500): Promise<Result<IDBDatabase, IDBError>> => {
+		let last: Result<IDBDatabase, IDBError> = err(idbErr('not_connected'))
+		for (let i = 0; i < attempts; i++) {
+			last = await open(onVersionChange)
+			if (last.ok || last.error.code === 'open_blocked' || last.error.code === 'migration_failed')
+				return last
+			if (i < attempts - 1)
+				await sleep(delayMs * 2 ** i)
+		}
+		return last
 	}
 
 	const exec = <T>(
@@ -156,12 +176,16 @@ function useIndexedDB(name: string, options: DataBaseOptions) {
 		})
 	}
 
-	return { open, exec }
+	return { openWithRetry, exec }
 }
 
 function createDataBase(name: string, options: DataBaseOptions) {
 	const db = useIndexedDB(name, options)
-	const ready = db.open()
+	let ready: Promise<Result<IDBDatabase, IDBError>>
+	const reconnect = () => {
+		ready = db.openWithRetry(reconnect)
+	}
+	ready = db.openWithRetry(reconnect)
 
 	return {
 		get: async <T>({ store, id }: RecordArgs): Promise<Result<T, IDBError>> => {
@@ -217,6 +241,7 @@ export const vaultDB = createDataBase('vault', {
 			notesStore.createIndex('by_folderId', 'folderId', { unique: false })
 
 			const request = notesStore.openCursor()
+			request.onerror = () => {}
 			request.onsuccess = (event) => {
 				const cursor = (event.target as IDBRequest).result
 				if (!cursor) {
