@@ -1,7 +1,7 @@
-import type { rawMarkdown, Result } from '@shared-kernel'
+import type { rawMarkdown, Result, Rule } from '@shared-kernel'
 import type { Note } from './note'
 import type { NoteError } from './note.errors'
-import { err, ok } from '@shared-kernel'
+import { err, ok, validate } from '@shared-kernel'
 import { noteErr } from './note.errors'
 
 // --- Constraints ---
@@ -14,18 +14,19 @@ export const NOTE_DEFAULT_TITLE = 'Untitled'
 type NoteChanges = Partial<Pick<Note, 'title' | 'content'>>
 
 // --- Rules ---
+const noteTitleRules: Rule<string, NoteError>[] = [
+	v => !v ? noteErr('empty_title') : null,
+	v => v.length > NOTE_TITLE_MAX_LENGTH ? noteErr('title_too_long') : null,
+]
 
 export function createNote(title: string, content: rawMarkdown = ''): Result<Note, NoteError> {
 	const trimmed = title.trim()
-	if (!trimmed) {
-		return err(noteErr('empty_title'))
+	const error = validate(trimmed, noteTitleRules)
+	if (error !== null) {
+		return err(error)
 	}
 
-	if (trimmed.length > NOTE_TITLE_MAX_LENGTH) {
-		return err(noteErr('title_too_long'))
-	}
 	const now = Date.now()
-
 	return ok({
 		id: crypto.randomUUID(),
 		title: trimmed,
