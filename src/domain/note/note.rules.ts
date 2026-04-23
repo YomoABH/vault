@@ -41,21 +41,15 @@ export function updateNote(note: Note, changes: NoteChanges): Result<Note, NoteE
 	if (changes.title === undefined && changes.content === undefined) {
 		return ok(note)
 	}
-	let validated = changes
+
 	if (changes.title !== undefined) {
 		const trimmed = changes.title.trim()
-
-		if (!trimmed) {
-			return err(noteErr('empty_title'))
-		}
-
-		if (trimmed.length > NOTE_TITLE_MAX_LENGTH) {
-			return err(noteErr('title_too_long'))
-		}
-
-		validated = { ...changes, title: trimmed }
+		const error = validate(trimmed, noteTitleRules)
+		if (error !== null) return err(error)
+		changes = { ...changes, title: trimmed }
 	}
-	return ok({ ...note, ...validated, updatedAt: Date.now() })
+
+	return ok({ ...note, ...changes, updatedAt: Date.now() })
 }
 
 export function duplicateNote(note: Note): Result<Note, NoteError> {
