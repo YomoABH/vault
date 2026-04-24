@@ -1,4 +1,4 @@
-import type { rawMarkdown, Result, Rule } from '@shared-kernel'
+import type { rawMarkdown, Result, Rule, UUID } from '@shared-kernel'
 import type { Note } from './note'
 import type { NoteError } from './note.errors'
 import { err, ok, validate } from '@shared-kernel'
@@ -11,7 +11,7 @@ export const NOTE_DEFAULT_TITLE = 'Untitled'
 
 // --- Types ---
 
-type NoteChanges = Partial<Pick<Note, 'title' | 'content'>>
+type NoteChanges = Partial<Pick<Note, 'title' | 'content' | 'folderId'>>
 
 // --- Rules ---
 const noteTitleRules: Rule<string, NoteError>[] = [
@@ -19,7 +19,7 @@ const noteTitleRules: Rule<string, NoteError>[] = [
 	v => v.length > NOTE_TITLE_MAX_LENGTH ? noteErr('title_too_long') : null,
 ]
 
-export function createNote(title: string, content: rawMarkdown = ''): Result<Note, NoteError> {
+export function createNote(title: string, content: rawMarkdown = '', folderId: UUID | null = null): Result<Note, NoteError> {
 	const trimmed = title.trim()
 	const error = validate(trimmed, noteTitleRules)
 	if (error !== null) {
@@ -31,14 +31,14 @@ export function createNote(title: string, content: rawMarkdown = ''): Result<Not
 		id: crypto.randomUUID(),
 		title: trimmed,
 		content,
-		folderId: null,
+		folderId,
 		createdAt: now,
 		updatedAt: now,
 	})
 }
 
 export function updateNote(note: Note, changes: NoteChanges): Result<Note, NoteError> {
-	if (changes.title === undefined && changes.content === undefined) {
+	if (changes.title === undefined && changes.content === undefined && changes.folderId === undefined) {
 		return ok(note)
 	}
 
@@ -53,5 +53,5 @@ export function updateNote(note: Note, changes: NoteChanges): Result<Note, NoteE
 }
 
 export function duplicateNote(note: Note): Result<Note, NoteError> {
-	return createNote(note.title, note.content)
+	return createNote(note.title, note.content, note.folderId)
 }

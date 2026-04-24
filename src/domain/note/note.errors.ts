@@ -2,6 +2,7 @@ export type NoteErrorCode
 	= | 'empty_title' // title is empty after trim
 		| 'title_too_long' // title exceeds NOTE_TITLE_MAX_LENGTH
 		| 'note_not_found' // note ID doesn't exist in store
+		| 'folder_not_found' // folderId references a non-existent folder
 		| 'db_error' // persistence layer failure
 		| 'unknown_error' // unexpected catch
 
