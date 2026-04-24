@@ -45,7 +45,8 @@ export function updateNote(note: Note, changes: NoteChanges): Result<Note, NoteE
 	if (changes.title !== undefined) {
 		const trimmed = changes.title.trim()
 		const error = validate(trimmed, noteTitleRules)
-		if (error !== null) return err(error)
+		if (error !== null)
+			return err(error)
 		changes = { ...changes, title: trimmed }
 	}
 

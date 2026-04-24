@@ -24,6 +24,7 @@ const ERROR_MESSAGES: Record<NoteErrorCode, string> = {
 	note_not_found: 'Заметка не найдена',
 	db_error: 'Ошибка хранилища данных',
 	unknown_error: 'Неизвестная ошибка',
+	folder_not_found: 'Папка не найдена',
 }
 
 const { error: toastError } = useToast()
