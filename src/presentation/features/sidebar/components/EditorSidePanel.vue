@@ -96,14 +96,9 @@ const actions = [
 			</ContextMenuTrigger>
 
 			<ContextMenuContent>
-				<ContextMenuItem class="cursor-pointer" @select="createNote(null)">
-					<Icon size="16" name="FilePlusCorner" />
-					<span>Новая заметка</span>
-				</ContextMenuItem>
-
-				<ContextMenuItem class="cursor-pointer" @select="startCreateFolder">
-					<Icon size="16" name="FolderPlus" />
-					<span>Новая папка</span>
+				<ContextMenuItem v-for="action in actions" :key="action.id" class="cursor-pointer" @select="action.callback">
+					<Icon :size="16" :name="action.icon" />
+					<span>{{ action.tooltip }}</span>
 				</ContextMenuItem>
 			</ContextMenuContent>
 		</ContextMenu>

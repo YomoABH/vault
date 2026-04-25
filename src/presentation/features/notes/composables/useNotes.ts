@@ -85,7 +85,7 @@ export function useNotes() {
 		activeNote.value = result.value
 	}
 
-	async function updateNote(note: Note, changes: Partial<Pick<Note, 'title' | 'content'>>): Promise<Note | null> {
+	async function updateNote(note: Note, changes: Partial<Pick<Note, 'title' | 'content' | 'folderId'>>): Promise<Note | null> {
 		const result = await executeUpdateNote(note, changes)
 		if (!result.ok) {
 			showError(result.error)

@@ -2,6 +2,7 @@
 import { useFolders } from '@presentation/features/folder'
 import { NoteListItem, useNotes } from '@presentation/features/notes'
 import { computed } from 'vue'
+import DragDropZone from './DragDropZone.vue'
 import FolderTreeItem from './FolderTreeItem.vue'
 
 const { folders } = useFolders()
@@ -14,33 +15,35 @@ const isEmpty = computed(() => rootFolders.value.length === 0 && rootNotes.value
 
 <template>
 	<div class="flex-1 overflow-y-auto py-1">
-		<template v-if="!isEmpty">
-			<ul>
-				<FolderTreeItem
-					v-for="folder in rootFolders"
-					:key="folder.id"
-					:folder="folder"
-					:depth="0"
-				/>
-			</ul>
+		<DragDropZone :folder-id="null" class="min-h-full">
+			<template v-if="!isEmpty">
+				<ul>
+					<FolderTreeItem
+						v-for="folder in rootFolders"
+						:key="folder.id"
+						:folder="folder"
+						:depth="0"
+					/>
+				</ul>
 
-			<div v-if="rootFolders.length > 0 && rootNotes.length > 0" class="mx-2 my-1 border-t border-border/50" />
+				<div v-if="rootFolders.length > 0 && rootNotes.length > 0" class="mx-2 my-1 border-t border-border/50" />
 
-			<ul>
-				<NoteListItem
-					v-for="note in rootNotes"
-					:key="note.id"
-					:note="note"
-					:depth="0"
-				/>
-			</ul>
-		</template>
+				<ul>
+					<NoteListItem
+						v-for="note in rootNotes"
+						:key="note.id"
+						:note="note"
+						:depth="0"
+					/>
+				</ul>
+			</template>
 
-		<div
-			v-else
-			class="h-full flex items-center justify-center text-sm font-semibold text-muted-foreground px-2 py-4"
-		>
-			Заметок пока нет
-		</div>
+			<div
+				v-else
+				class="h-full flex items-center justify-center text-sm font-semibold text-muted-foreground px-2 py-4"
+			>
+				Заметок пока нет
+			</div>
+		</DragDropZone>
 	</div>
 </template>

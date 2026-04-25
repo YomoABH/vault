@@ -8,13 +8,14 @@ import {
 	ContextMenu,
 	ContextMenuContent,
 	ContextMenuItem,
-	ContextMenuSeparator,
 	ContextMenuTrigger,
 } from '@presentation/shared/ui/context-menu'
 import Icon from '@presentation/shared/ui/icon/Icon.vue'
 import { Input } from '@presentation/shared/ui/input'
 import { computed, nextTick, ref } from 'vue'
+import { useDragDrop } from '../composables/useDragDrop'
 import { useSidePanel } from '../composables/useSidePanel'
+import DragDropZone from './DragDropZone.vue'
 // #endregion
 
 // #region --- props ---
@@ -29,6 +30,7 @@ const { getChildFolders, deleteFolder, editFolder, createFolder } = useFolders()
 const { notes, createNote } = useNotes()
 const { isExpanded, toggleFolder } = useSidePanel()
 const { activeFolderId } = useUIState()
+const { isItemBeingDragged, startDrag, endDrag } = useDragDrop()
 
 const isActive = computed(() => activeFolderId.value === props.folder.id)
 const expanded = computed(() => isExpanded(props.folder.id))
@@ -61,7 +63,6 @@ function cancelRename(): void {
 	isRenaming.value = false
 }
 
-// create subfolder inline
 const isCreatingChild = ref(false)
 const newChildTitle = ref('')
 const newChildInputRef = ref<HTMLInputElement | null>(null)
@@ -69,8 +70,10 @@ const newChildInputRef = ref<HTMLInputElement | null>(null)
 async function startCreateChild(): Promise<void> {
 	if (!expanded.value)
 		toggleFolder(props.folder.id)
+
 	newChildTitle.value = ''
 	isCreatingChild.value = true
+
 	await nextTick()
 	newChildInputRef.value?.focus()
 }
@@ -87,100 +90,106 @@ function cancelCreateChild(): void {
 	isCreatingChild.value = false
 	newChildTitle.value = ''
 }
-
 // #endregion
 </script>
 
 <template>
 	<li class="list-none">
-		<ContextMenu>
-			<ContextMenuTrigger as-child>
-				<div
-					class="flex items-center gap-1 h-7 pr-2 rounded-sm cursor-pointer select-none hover:bg-accent/50 transition-colors"
-					:class="{ 'bg-accent text-accent-foreground font-medium': isActive }"
-					:style="indentStyle"
-					@click="activeFolderId = folder.id"
-				>
-					<button
-						class="shrink-0 flex items-center justify-center w-4 h-4 rounded-sm hover:bg-accent"
-						@click.stop="toggleFolder(folder.id)"
+		<DragDropZone v-slot="{ isHighlighted }" :folder-id="folder.id">
+			<ContextMenu>
+				<ContextMenuTrigger as-child>
+					<div
+						class="flex items-center gap-1 h-7 pr-2 rounded-sm cursor-pointer select-none hover:bg-accent/50 transition-colors"
+						:class="{ 'bg-accent text-accent-foreground font-medium': isActive, 'opacity-40': isItemBeingDragged(folder.id), 'ring-1 ring-inset ring-primary/50 bg-primary/5': isHighlighted }"
+						:style="indentStyle"
+						draggable="true"
+						@dragstart.stop="startDrag($event, { type: 'folder', id: folder.id })"
+						@dragend="endDrag"
+						@click="activeFolderId = folder.id"
 					>
+						<button
+							class="shrink-0 flex items-center justify-center w-4 h-4 rounded-sm hover:bg-accent"
+							@click.stop="toggleFolder(folder.id)"
+						>
+							<Icon
+								name="ChevronRight"
+								:size="14"
+								class="transition-transform duration-150"
+								:class="{ 'rotate-90': expanded }"
+							/>
+						</button>
+
 						<Icon
-							name="ChevronRight"
+							:name="expanded ? 'FolderOpen' : 'Folder'"
 							:size="14"
-							class="transition-transform duration-150"
-							:class="{ 'rotate-90': expanded }"
+							class="shrink-0 text-muted-foreground"
 						/>
-					</button>
 
-					<Icon
-						:name="expanded ? 'FolderOpen' : 'Folder'"
-						:size="14"
-						class="shrink-0 text-muted-foreground"
-					/>
+						<template v-if="isRenaming">
+							<Input
+								ref="renameInputRef"
+								v-model="renameTitle"
+								class="h-5 text-sm px-1 py-0"
+								@keydown.enter="confirmRename"
+								@keydown.escape="cancelRename"
+								@blur="confirmRename"
+								@click.stop
+							/>
+						</template>
+						<span v-else class="truncate text-sm">{{ folder.title }}</span>
+					</div>
+				</ContextMenuTrigger>
 
-					<template v-if="isRenaming">
-						<Input
-							ref="renameInputRef"
-							v-model="renameTitle"
-							class="h-5 text-sm px-1 py-0"
-							@keydown.enter="confirmRename"
-							@keydown.escape="cancelRename"
-							@blur="confirmRename"
-							@click.stop
-						/>
-					</template>
-					<span v-else class="truncate text-sm">{{ folder.title }}</span>
-				</div>
-			</ContextMenuTrigger>
+				<ContextMenuContent>
+					<ContextMenuItem class="cursor-pointer" @select="createNote(folder.id)">
+						<Icon :size="16" name="FilePlusCorner" />
+						<span>Новая заметка</span>
+					</ContextMenuItem>
 
-			<ContextMenuContent>
-				<ContextMenuItem class="cursor-pointer" @select="createNote(folder.id)">
-					<Icon size="16" name="FilePlusCorner" />
-					<span>Новая заметка</span>
-				</ContextMenuItem>
-				<ContextMenuItem class="cursor-pointer" @select="startCreateChild">
-					<Icon size="16" name="FolderPlus" />
-					<span>Новая подпапка</span>
-				</ContextMenuItem>
-				<ContextMenuSeparator />
-				<ContextMenuItem class="cursor-pointer" @select="startRename">
-					<Icon size="16" name="Pencil" />
-					<span>Переименовать</span>
-				</ContextMenuItem>
-				<ContextMenuItem class="cursor-pointer text-destructive focus:text-destructive" @select="deleteFolder(folder.id)">
-					<Icon size="16" name="Trash2" />
-					<span>Удалить</span>
-				</ContextMenuItem>
-			</ContextMenuContent>
-		</ContextMenu>
+					<ContextMenuItem class="cursor-pointer" @select="startCreateChild">
+						<Icon :size="16" name="FolderPlus" />
+						<span>Новая подпапка</span>
+					</ContextMenuItem>
 
-		<ul v-if="expanded">
-			<FolderTreeItem
-				v-for="child in childFolders"
-				:key="child.id"
-				:folder="child"
-				:depth="depth + 1"
-			/>
+					<ContextMenuItem class="cursor-pointer" @select="startRename">
+						<Icon :size="16" name="Pencil" />
+						<span>Переименовать</span>
+					</ContextMenuItem>
 
-			<li v-if="isCreatingChild" class="list-none" :style="childIndentStyle">
-				<Input
-					ref="newChildInputRef"
-					v-model="newChildTitle"
-					class="h-7 text-sm my-0.5"
-					placeholder="Название папки..."
-					@keydown.enter="confirmCreateChild"
-					@keydown.escape="cancelCreateChild"
-					@blur="cancelCreateChild"
+					<ContextMenuItem class="cursor-pointer text-destructive focus:text-destructive" @select="deleteFolder(folder.id)">
+						<Icon :size="16" name="Trash2" />
+						<span>Удалить</span>
+					</ContextMenuItem>
+				</ContextMenuContent>
+			</ContextMenu>
+
+			<ul v-if="expanded">
+				<FolderTreeItem
+					v-for="child in childFolders"
+					:key="child.id"
+					:folder="child"
+					:depth="depth + 1"
 				/>
-			</li>
 
-			<NoteListItem
-				v-for="note in folderNotes"
-				:key="note.id"
-				:note="note"
-				:depth="depth + 1"
-			/>
-		</ul>
+				<li v-if="isCreatingChild" class="list-none" :style="childIndentStyle">
+					<Input
+						ref="newChildInputRef"
+						v-model="newChildTitle"
+						class="h-7 text-sm my-0.5"
+						placeholder="Название папки..."
+						@keydown.enter="confirmCreateChild"
+						@keydown.escape="cancelCreateChild"
+						@blur="cancelCreateChild"
+					/>
+				</li>
+
+				<NoteListItem
+					v-for="note in folderNotes"
+					:key="note.id"
+					:note="note"
+					:depth="depth + 1"
+				/>
+			</ul>
+		</DragDropZone>
 	</li>
 </template>
