@@ -1,9 +1,8 @@
 <script setup lang="ts">
 // #region --- import ---
 import type { Folder } from '@domain/folder/folder'
-import { NoteListItem } from '@presentation/features/notes'
 import { useFolders } from '@presentation/features/folder'
-import { useNotes } from '@presentation/features/notes'
+import { NoteListItem, useNotes } from '@presentation/features/notes'
 import { useUIState } from '@presentation/shared/composables/useUIState'
 import {
 	ContextMenu,
