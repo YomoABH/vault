@@ -9,9 +9,10 @@ import {
 import Icon from '@/presentation/shared/ui/icon/Icon.vue'
 import { useNotes } from '../composables/useNotes'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
 	note: Note
-}>()
+	depth?: number
+}>(), { depth: 0 })
 
 const { activeNote, setActiveNote, deleteNote, duplicateNote } = useNotes()
 </script>
@@ -20,10 +21,11 @@ const { activeNote, setActiveNote, deleteNote, duplicateNote } = useNotes()
 	<ContextMenu>
 		<ContextMenuTrigger as-child>
 			<button
-				class="w-full text-left px-3 py-2 rounded-md text-sm truncate transition-colors cursor-pointer"
+				class="w-full text-left py-1.5 pr-2 rounded-xs text-sm truncate transition-colors cursor-pointer"
 				:class="activeNote?.id === props.note.id
-					? 'bg-accent text-accent-foreground font-medium'
+					? 'bg-accent/50 text-white font-medium'
 					: 'text-foreground hover:bg-accent/50'"
+				:style="{ paddingLeft: `${props.depth * 12 + 20}px` }"
 				@click="setActiveNote(props.note)"
 			>
 				{{ props.note.title || 'Без названия' }}

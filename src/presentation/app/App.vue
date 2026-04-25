@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useFolders } from '@presentation/features/folder'
 import { useNotes } from '@presentation/features/notes/composables/useNotes'
 import DefaultLayout from '@presentation/layouts/DefaultLayout.vue'
 import { computed, onMounted } from 'vue'
@@ -9,7 +10,8 @@ const route = useRoute()
 const layout = computed(() => route.meta.layout ?? DefaultLayout)
 
 const { loadNotes } = useNotes()
-onMounted(loadNotes)
+const { loadFolders } = useFolders()
+onMounted(() => Promise.all([loadNotes(), loadFolders()]))
 </script>
 
 <template>

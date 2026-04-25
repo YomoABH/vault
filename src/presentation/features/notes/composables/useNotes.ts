@@ -49,8 +49,8 @@ export function useNotes() {
 		}
 	}
 
-	async function createNote(): Promise<void> {
-		const result = await executeCreateNote('')
+	async function createNote(folderId: UUID | null = null): Promise<void> {
+		const result = await executeCreateNote('', folderId)
 		if (!result.ok) {
 			showError(result.error)
 			return

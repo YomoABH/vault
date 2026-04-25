@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // #region --- import ---
-import { NotesPanel } from '@presentation/features/notes'
+import { EditorSidePanel } from '@presentation/features/sidebar'
 import { useUIState } from '@presentation/shared/composables/useUIState'
 import Sidebar from '@presentation/shared/ui/sidebar/Sidebar.vue'
 import SidebarContent from '@presentation/shared/ui/sidebar/SidebarContent.vue'
@@ -49,7 +49,7 @@ function toggleNotesPanel() {
 
 		<SidebarInset class="flex flex-row" :style="{ marginLeft: 'var(--sidebar-width-icon)' }">
 			<Transition name="notes-panel">
-				<NotesPanel v-if="isNotesPanelOpen" @close="isNotesPanelOpen = false" />
+				<EditorSidePanel v-if="isNotesPanelOpen" @close="isNotesPanelOpen = false" />
 			</Transition>
 
 			<div class="w-full h-full flex flex-col overflow-hidden">
