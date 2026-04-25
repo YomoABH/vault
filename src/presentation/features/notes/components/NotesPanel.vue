@@ -24,11 +24,13 @@ const actions = [
 	{
 		id: 'createNote',
 		icon: 'FilePlusCorner',
+		label: 'Новая заметка',
 		callback: createNote,
 	},
 	{
 		id: 'createFolder',
 		icon: 'FolderPlus',
+		label: 'Новая папка',
 		callback: () => {},
 	},
 ] as const
@@ -65,9 +67,14 @@ const actions = [
 			</ContextMenuTrigger>
 
 			<ContextMenuContent>
-				<ContextMenuItem class="cursor-pointer" @select="createNote">
-					<Icon size="16" name="FilePlusCorner" />
-					<span>Новая заметка</span>
+				<ContextMenuItem
+					v-for="action in actions"
+					:key="action.id"
+					class="cursor-pointer"
+					@select="action.callback"
+				>
+					<Icon :size="16" :name="action.icon" />
+					<span>{{ action.label }}</span>
 				</ContextMenuItem>
 			</ContextMenuContent>
 		</ContextMenu>

@@ -32,7 +32,6 @@ const { isExpanded, toggleFolder } = useSidePanel()
 const { activeFolderId } = useUIState()
 const { isItemBeingDragged, startDrag, endDrag } = useDragDrop()
 
-const isActive = computed(() => activeFolderId.value === props.folder.id)
 const expanded = computed(() => isExpanded(props.folder.id))
 const childFolders = computed(() => getChildFolders(props.folder.id))
 const folderNotes = computed(() => notes.value.filter(n => n.folderId === props.folder.id))
@@ -90,39 +89,56 @@ function cancelCreateChild(): void {
 	isCreatingChild.value = false
 	newChildTitle.value = ''
 }
+
+const contextActions = computed(() => [
+	{
+		id: 'createNote',
+		icon: 'FilePlusCorner',
+		label: 'Новая заметка',
+		callback: () => createNote(props.folder.id),
+	},
+	{
+		id: 'createChild',
+		icon: 'FolderPlus',
+		label: 'Новая подпапка',
+		callback: startCreateChild,
+	},
+	{
+		id: 'rename',
+		icon: 'Pencil',
+		label: 'Переименовать',
+		callback: startRename,
+	},
+	{
+		id: 'delete',
+		icon: 'Trash2',
+		label: 'Удалить',
+		callback: () => deleteFolder(props.folder.id),
+		class: 'text-destructive focus:text-destructive',
+	},
+])
 // #endregion
 </script>
 
 <template>
-	<li class="list-none">
+	<li class="list-none" @click.stop="toggleFolder(folder.id)">
 		<DragDropZone v-slot="{ isHighlighted }" :folder-id="folder.id">
 			<ContextMenu>
 				<ContextMenuTrigger as-child>
 					<div
-						class="flex items-center gap-1 h-7 pr-2 rounded-sm cursor-pointer select-none hover:bg-accent/50 transition-colors"
-						:class="{ 'bg-accent text-accent-foreground font-medium': isActive, 'opacity-40': isItemBeingDragged(folder.id), 'ring-1 ring-inset ring-primary/50 bg-primary/5': isHighlighted }"
+						class="flex items-center gap-1 h-7 pr-2 rounded-xs cursor-pointer select-none hover:bg-accent/50 transition-colors"
+						:class="{ 'opacity-40': isItemBeingDragged(folder.id), 'ring-1 ring-inset ring-primary/50 bg-primary/5': isHighlighted }"
 						:style="indentStyle"
 						draggable="true"
 						@dragstart.stop="startDrag($event, { type: 'folder', id: folder.id })"
 						@dragend="endDrag"
 						@click="activeFolderId = folder.id"
 					>
-						<button
-							class="shrink-0 flex items-center justify-center w-4 h-4 rounded-sm hover:bg-accent"
-							@click.stop="toggleFolder(folder.id)"
-						>
-							<Icon
-								name="ChevronRight"
-								:size="14"
-								class="transition-transform duration-150"
-								:class="{ 'rotate-90': expanded }"
-							/>
-						</button>
-
 						<Icon
-							:name="expanded ? 'FolderOpen' : 'Folder'"
+							name="ChevronRight"
 							:size="14"
-							class="shrink-0 text-muted-foreground"
+							class="transition-transform duration-150"
+							:class="{ 'rotate-90': expanded }"
 						/>
 
 						<template v-if="isRenaming">
@@ -141,24 +157,15 @@ function cancelCreateChild(): void {
 				</ContextMenuTrigger>
 
 				<ContextMenuContent>
-					<ContextMenuItem class="cursor-pointer" @select="createNote(folder.id)">
-						<Icon :size="16" name="FilePlusCorner" />
-						<span>Новая заметка</span>
-					</ContextMenuItem>
-
-					<ContextMenuItem class="cursor-pointer" @select="startCreateChild">
-						<Icon :size="16" name="FolderPlus" />
-						<span>Новая подпапка</span>
-					</ContextMenuItem>
-
-					<ContextMenuItem class="cursor-pointer" @select="startRename">
-						<Icon :size="16" name="Pencil" />
-						<span>Переименовать</span>
-					</ContextMenuItem>
-
-					<ContextMenuItem class="cursor-pointer text-destructive focus:text-destructive" @select="deleteFolder(folder.id)">
-						<Icon :size="16" name="Trash2" />
-						<span>Удалить</span>
+					<ContextMenuItem
+						v-for="action in contextActions"
+						:key="action.id"
+						class="cursor-pointer"
+						:class="action.class"
+						@select="action.callback"
+					>
+						<Icon :size="16" :name="action.icon" />
+						<span>{{ action.label }}</span>
 					</ContextMenuItem>
 				</ContextMenuContent>
 			</ContextMenu>

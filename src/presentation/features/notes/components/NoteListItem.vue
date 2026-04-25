@@ -17,6 +17,22 @@ const props = withDefaults(defineProps<{
 
 const { activeNote, setActiveNote, deleteNote, duplicateNote } = useNotes()
 const { isItemBeingDragged, startDrag, endDrag } = useDragDrop()
+
+const contextActions = [
+	{
+		id: 'duplicate',
+		icon: 'Copy',
+		label: 'Дублировать',
+		callback: () => duplicateNote(props.note),
+	},
+	{
+		id: 'delete',
+		icon: 'Trash2',
+		label: 'Удалить',
+		callback: () => deleteNote(props.note.id),
+		class: 'text-destructive focus:text-destructive',
+	},
+]
 </script>
 
 <template>
@@ -39,14 +55,15 @@ const { isItemBeingDragged, startDrag, endDrag } = useDragDrop()
 		</ContextMenuTrigger>
 
 		<ContextMenuContent>
-			<ContextMenuItem class="cursor-pointer" @select="duplicateNote(props.note)">
-				<Icon :size="16" name="Copy" />
-				<span>Дублировать</span>
-			</ContextMenuItem>
-
-			<ContextMenuItem class="cursor-pointer text-destructive focus:text-destructive" @select="deleteNote(props.note.id)">
-				<Icon :size="16" name="Trash2" />
-				<span>Удалить</span>
+			<ContextMenuItem
+				v-for="action in contextActions"
+				:key="action.id"
+				class="cursor-pointer"
+				:class="action.class"
+				@select="action.callback"
+			>
+				<Icon :size="16" :name="action.icon" />
+				<span>{{ action.label }}</span>
 			</ContextMenuItem>
 		</ContextMenuContent>
 	</ContextMenu>

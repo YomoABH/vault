@@ -26,8 +26,6 @@ const isEmpty = computed(() => rootFolders.value.length === 0 && rootNotes.value
 					/>
 				</ul>
 
-				<div v-if="rootFolders.length > 0 && rootNotes.length > 0" class="mx-2 my-1 border-t border-border/50" />
-
 				<ul>
 					<NoteListItem
 						v-for="note in rootNotes"
