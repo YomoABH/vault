@@ -27,6 +27,7 @@ Build a local-first, offline-capable, encrypted note-taking app that exercises t
 - **Vue 3** (Composition API, `<script setup>`)
 - **TypeScript** (strict mode)
 - **Vite** (bundler, dev server, worker support)
+- **Vitest** (unit-тесты; покрываем только `domain/` и `application/`)
 - **Tailwind CSS** + **shadcn-vue** (UI components)
 - **Vue Router**
 - No backend for core functionality. Minimal signaling server only for WebRTC peer discovery.
@@ -125,6 +126,7 @@ src/
 4. **`presentation/` imports from `application/` and `domain/`** (types). Never imports from `infrastructure/` directly (dependencies are provided via Vue's provide/inject from the composition root in `di.ts`).
 5. **`workers/` import from `domain/` and `infrastructure/`**. They are a separate delivery mechanism alongside Vue, not part of the presentation layer.
 6. **Every feature module exports a public API via `index.ts`.** Internal structure is private. Other features and pages only import from `index.ts`.
+7. **Тест-охват: только `domain/` и `application/`.** Осознанный выбор для учебного пет-проекта. Инструмент — Vitest. `domain/` тестируется без моков (чистые функции). `application/` тестируется с мок-портами через `vi.fn()`. `infrastructure/` и `presentation/` unit-тестами не покрываются. E2E (Playwright) — отдельная тема Phase 7.
 
 ## Current phase
 
@@ -135,6 +137,8 @@ The project is being built incrementally in phases. Each phase is self-contained
 **Phase 3: Multi-tab** — SharedWorker/BroadcastChannel, Web Locks, OPFS as second storage.
 **Phase 4: Offline & PWA** — Service Worker, Cache API, Background Sync, Web App Manifest.
 **Phase 5: P2P & Security** — WebRTC DataChannel, signaling server, Web Crypto encryption.
+**Phase 6: Server Sync** — мини-бэкенд (Node.js + Hono), WebSocket-синхронизация, JWT-аутентификация, SQLite. `WsSyncTransport` — вторая реализация `SyncTransportPort`. See `PHASE6.md`.
+**Phase 7: Quality & Distribution** — Vitest unit-тесты + Playwright E2E (сквозная тема с Phase 2), GitHub Actions CI, Docker (multi-stage build, docker-compose). See `PHASE7.md`.
 
 Ports and DI are introduced gradually: a port interface is created when a second implementation appears or when a worker needs to reuse the same logic. The first real port (`SearchEnginePort`) is introduced in Phase 2 together with the composition root in `presentation/app/di.ts`.
 
@@ -153,6 +157,7 @@ Ports and DI are introduced gradually: a port interface is created when a second
 - If a change I'm making violates the architectural rules above, flag it.
 - When suggesting code, respect the layer boundaries. Don't put infrastructure concerns in domain, don't put business logic in composables.
 - **Roadmaps and plans** (`PHASE2.md`, future `PHASEN.md`) are learning guides, not implementation specs. Do not fill them with ready-to-copy code — describe directions, browser APIs to study, trade-offs, acceptance criteria, and questions to think about. I want to write the implementations myself. Exception: when I explicitly ask to implement/write/build something, then produce the code.
+- **Testing scope is intentionally limited.** Unit tests cover only `domain/` and `application/`. Do not suggest writing tests for `infrastructure/` or `presentation/` — that's a deliberate choice. When discussing tests, always use Vitest (`vi.fn()`, `describe/it/expect`). Do not suggest Jest.
 
 ## Phase 2 status (current)
 

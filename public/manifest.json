@@ -1,17 +1,76 @@
 {
-  "name": "Vault",
-  "short_name": "Vault",
-  "description": "Personal knowledge base",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#09090b",
-  "theme_color": "#09090b",
-  "icons": [
-    {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
+	"name": "Vault",
+	"short_name": "Vault",
+	"description": "Personal knowledge base — local-first, offline-capable, encrypted",
+	"start_url": "/",
+	"scope": "/",
+	"id": "/",
+	"display": "standalone",
+	"display_override": [
+		"window-controls-overlay",
+		"standalone",
+		"minimal-ui",
+		"browser"
+	],
+	"orientation": "any",
+	"background_color": "#212121",
+	"theme_color": "#212121",
+	"lang": "ru",
+	"dir": "ltr",
+	"categories": [
+		"productivity",
+		"utilities"
+	],
+	"icons": [
+		{
+			"src": "/favicon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml",
+			"purpose": "any"
+		},
+		{
+			"src": "/favicon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml",
+			"purpose": "maskable"
+		}
+	],
+	"shortcuts": [
+		{
+			"name": "New Note",
+			"short_name": "New Note",
+			"description": "Create a new note",
+			"url": "/notes/new",
+			"icons": [
+				{
+					"src": "/favicon.svg",
+					"sizes": "any"
+				}
+			]
+		}
+	],
+	"screenshots": [],
+	"share_target": {
+		"action": "/share-target",
+		"method": "POST",
+		"enctype": "multipart/form-data",
+		"params": {
+			"title": "title",
+			"text": "text",
+			"url": "url"
+		}
+	},
+	"protocol_handlers": [
+		{
+			"protocol": "web+vault",
+			"url": "/?uri=%s"
+		}
+	],
+	"handle_links": "preferred",
+	"launch_handler": {
+		"client_mode": "navigate-existing"
+	},
+	"edge_side_panel": {
+		"preferred_width": 400
+	}
 }
