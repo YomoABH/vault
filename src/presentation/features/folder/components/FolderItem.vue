@@ -10,8 +10,8 @@ import {
 import Icon from '@presentation/shared/ui/icon/Icon.vue'
 import { Input } from '@presentation/shared/ui/input'
 import { computed, nextTick, ref } from 'vue'
-import { useFolders } from '../composables/useFolders'
 import { useNotes } from '../../notes'
+import { useFolders } from '../composables/useFolders'
 
 const props = withDefaults(defineProps<{
 	folder: Folder

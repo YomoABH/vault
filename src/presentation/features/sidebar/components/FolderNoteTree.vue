@@ -2,6 +2,7 @@
 import { useFolders } from '@presentation/features/folder'
 import { NoteListItem, useNotes } from '@presentation/features/notes'
 import { computed } from 'vue'
+
 import DragDropZone from './DragDropZone.vue'
 import FolderTreeItem from './FolderTreeItem.vue'
 
